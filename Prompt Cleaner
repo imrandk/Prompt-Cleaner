@@ -1,0 +1,84 @@
+(function () {
+  // Remove old box if exists
+  let old = document.getElementById("promptCleanerBox");
+  if (old) old.remove();
+
+  // Create main box
+  let box = document.createElement("div");
+  box.id = "promptCleanerBox";
+  box.style.position = "fixed";
+  box.style.top = "50%";
+  box.style.left = "50%";
+  box.style.transform = "translate(-50%, -50%)";
+  box.style.width = "520px";
+  box.style.background = "#ffffff";
+  box.style.border = "1px solid #ccc";
+  box.style.borderRadius = "10px";
+  box.style.boxShadow = "0 4px 12px rgba(0,0,0,0.2)";
+  box.style.padding = "15px";
+  box.style.zIndex = "999999";
+  box.style.fontFamily = "Arial";
+
+  box.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+      <h3 style="margin:0;">Prompt Cleaner</h3>
+      <span id="closeCleaner" style="cursor:pointer; font-size:18px; font-weight:bold;">✕</span>
+    </div>
+
+    <textarea id="promptInput" placeholder="Paste your prompts here..."
+      style="width:100%; height:130px; resize:vertical;"></textarea>
+
+    <div style="margin:10px 0;">
+      <button id="cleanBtn" style="padding:6px 14px; margin-right:10px; cursor:pointer;">Clean</button>
+      <button id="copyBtn" style="padding:6px 14px; cursor:pointer;">Copy</button>
+    </div>
+
+    <textarea id="promptOutput" placeholder="Clean result..."
+      style="width:100%; height:130px; resize:vertical;"></textarea>
+  `;
+
+  document.body.appendChild(box);
+
+  // Close button
+  document.getElementById("closeCleaner").onclick = function () {
+    box.remove();
+  };
+
+  // Clean logic
+  document.getElementById("cleanBtn").onclick = function () {
+    let text = document.getElementById("promptInput").value;
+
+    let lines = text.split("\n");
+    let seen = new Set();
+    let result = [];
+
+    lines.forEach(line => {
+      line = line.trim();
+      if (!line) return;
+
+      // Remove serial numbers (1. 15. etc)
+      line = line.replace(/^\d+\.\s*/, "");
+
+      // Keep only lines containing Prompt:
+      if (!line.includes("Prompt:")) return;
+
+      // Start from Prompt:
+      line = line.substring(line.indexOf("Prompt:")).trim();
+
+      // Remove duplicates
+      if (!seen.has(line)) {
+        seen.add(line);
+        result.push(line);
+      }
+    });
+
+    document.getElementById("promptOutput").value = result.join("\n");
+  };
+
+  // Copy silently
+  document.getElementById("copyBtn").onclick = function () {
+    let output = document.getElementById("promptOutput");
+    output.select();
+    document.execCommand("copy");
+  };
+})();
